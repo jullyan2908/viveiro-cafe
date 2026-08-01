@@ -410,6 +410,12 @@ function telaInicio(){
     );
 
 
+    let jaRecebido = dados.vendas.reduce(
+        (s,item)=>s+Number(item.valorPago||0),
+        0
+    );
+
+
     let aReceber = dados.vendas.reduce(
         (s,item)=> item.valor==null ? s : s+(Number(item.valor)-Number(item.valorPago||0)),
         0
@@ -446,6 +452,12 @@ return `
 <div class="stat gold">
 <small>Faturamento</small>
 <strong>${dinheiro(faturamento)}</strong>
+</div>
+
+
+<div class="stat">
+<small>Já recebido</small>
+<strong>${dinheiro(jaRecebido)}</strong>
 </div>
 
 
@@ -503,7 +515,6 @@ Nenhuma muda cadastrada.
 <tr>
 <th>Variedade</th>
 <th>Quantidade</th>
-<th>Preço</th>
 </tr>
 </thead>
 
@@ -523,11 +534,6 @@ ${e.nome}
 
 <td data-label="Quantidade">
 ${numero(e.quantidade)}
-</td>
-
-
-<td data-label="Preço">
-${dinheiro(e.preco)}
 </td>
 
 
@@ -842,20 +848,6 @@ placeholder="Ex: 5000">
 </div>
 
 
-
-<div>
-
-<label>Preço por muda</label>
-
-<input
-type="number"
-step="0.01"
-id="estoquePreco"
-placeholder="Ex: 1.50">
-
-</div>
-
-
 </div>
 
 
@@ -917,8 +909,6 @@ Nenhuma variedade cadastrada.
 
 <th>Quantidade</th>
 
-<th>Preço</th>
-
 <th></th>
 
 </tr>
@@ -973,14 +963,6 @@ Number(e.quantidade)<100
 ""
 
 }
-
-</td>
-
-
-
-<td data-label="Preço">
-
-${dinheiro(e.preco)}
 
 </td>
 
@@ -1060,16 +1042,7 @@ document
 
 
 
-let preco =
-Number(
-document
-.getElementById("estoquePreco")
-.value
-);
-
-
-
-if(!nome || quantidade<=0 || preco<0){
+if(!nome || quantidade<=0){
 
 
 mostrarToast(
@@ -1089,9 +1062,7 @@ id:gerarId(),
 
 nome,
 
-quantidade,
-
-preco
+quantidade
 
 });
 
@@ -1201,24 +1172,19 @@ dados.estoque.map(e=>`
 </div>
 
 <div>
-<label>Situação do pagamento</label>
-<select id="vendaStatus">
-<option value="pago">Pago (à vista)</option>
-<option value="parcial">Pago parcial (sinal)</option>
-<option value="reservado">Reservado (preço já combinado, sem pagamento)</option>
-<option value="sem_preco">Reservado (preço a combinar depois)</option>
-</select>
+<label>Valor da muda (por unidade) — deixe em branco se ainda não combinou</label>
+<input type="number" step="0.01" id="vendaPreco" placeholder="Ex: 1.50">
 </div>
 
 <div>
-<label>Valor já pago agora (só se for sinal/parcial)</label>
-<input type="number" step="0.01" id="vendaValorPago" placeholder="Ex: 20.00">
+<label>Valor de entrada (se ele já deu uma parte)</label>
+<input type="number" step="0.01" id="vendaValorEntrada" placeholder="Ex: 20.00">
 </div>
 
 </div>
 
 <p style="font-size:.9rem;opacity:.75;margin-top:6px;">
-💡 Escolhendo "preço a combinar depois", a muda fica reservada e some do estoque, mas sem valor — dá pra definir o preço mais tarde na entrega/retirada.
+💡 A muda sai do estoque assim que reserva, mesmo sem preço definido. Se não pagou nada ainda, deixe "valor de entrada" em branco. Se pagou tudo, coloque o valor de entrada igual ao valor da muda × quantidade.
 </p>
 
 <br>
@@ -1360,9 +1326,14 @@ document
 .value
 );
 
-let status =
+let precoInformado =
 document
-.getElementById("vendaStatus")
+.getElementById("vendaPreco")
+.value;
+
+let valorEntradaInformado =
+document
+.getElementById("vendaValorEntrada")
 .value;
 
 let cliente =
@@ -1398,29 +1369,31 @@ return;
 
 produto.quantidade -= quantidade;
 
-// Se o preço ainda não foi combinado com o cliente, não calcula nada agora —
-// fica "a definir" e é preenchido depois, na entrega/retirada (função definirPreco).
-let valor =
-status === "sem_preco"
-? null
-: quantidade * produto.preco;
+// Se o preço por muda não foi digitado, fica "a definir" — dá pra completar
+// depois na entrega/retirada (função definirPreco). O valor de entrada
+// (se ele já deu uma parte) fica guardado mesmo sem o preço total fechado.
+let precoUnitario = Number(String(precoInformado).replace(",", "."));
+let temPreco = precoInformado !== "" && precoUnitario > 0;
 
-// Quanto já foi pago, de acordo com a situação escolhida:
-// pago -> valor cheio | reservado/sem_preco -> nada | parcial -> o que foi digitado no campo de sinal
-let valorPago = 0;
+let valor = temPreco ? precoUnitario * quantidade : null;
 
-if(status === "pago"){
-    valorPago = valor;
-}else if(status === "parcial"){
-    valorPago =
-    Number(
-    document
-    .getElementById("vendaValorPago")
-    .value
-    ) || 0;
+let valorEntrada = Number(String(valorEntradaInformado).replace(",", ".")) || 0;
+if(valorEntrada < 0) valorEntrada = 0;
+if(temPreco && valorEntrada > valor) valorEntrada = valor;
 
-    if(valorPago > valor) valorPago = valor;
-    if(valorPago < 0) valorPago = 0;
+let valorPago = valorEntrada;
+
+// Situação calculada sozinha a partir dos valores digitados —
+// não precisa mais escolher numa lista.
+let status;
+if(!temPreco){
+    status = "sem_preco";
+}else if(valorPago >= valor){
+    status = "pago";
+}else if(valorPago > 0){
+    status = "parcial";
+}else{
+    status = "reservado";
 }
 
 dados.vendas.push({
@@ -1851,13 +1824,12 @@ XLSX.utils.book_append_sheet(wb, wsClientes, "Clientes");
 // --- ESTOQUE ---
 
 const cabecalhoEstoque =
-["Variedade","Quantidade","Preco"].map(celulaTexto);
+["Variedade","Quantidade"].map(celulaTexto);
 
 const linhasEstoque =
 dados.estoque.map(e=>[
 e.nome,
-Number(e.quantidade),
-celulaMoeda(e.preco)
+Number(e.quantidade)
 ]);
 
 const wsEstoque =
@@ -1866,7 +1838,7 @@ XLSX.utils.aoa_to_sheet(
 );
 
 wsEstoque["!cols"] =
-[{wch:28},{wch:15},{wch:15}];
+[{wch:28},{wch:15}];
 
 XLSX.utils.book_append_sheet(wb, wsEstoque, "Estoque");
 
