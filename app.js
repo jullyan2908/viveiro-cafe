@@ -288,23 +288,23 @@ app.innerHTML=`
 
 <nav>
 
-<button class="${telaAtual==='inicio'?'ativo':''}" onclick="abrirTela('inicio')">
+<button class="${telaAtual==='inicio'?'active':''}" onclick="abrirTela('inicio')">
 Painel
 </button>
 
-<button class="${telaAtual==='estoque'?'ativo':''}" onclick="abrirTela('estoque')">
+<button class="${telaAtual==='estoque'?'active':''}" onclick="abrirTela('estoque')">
 Estoque
 </button>
 
-<button class="${telaAtual==='clientes'?'ativo':''}" onclick="abrirTela('clientes')">
+<button class="${telaAtual==='clientes'?'active':''}" onclick="abrirTela('clientes')">
 Clientes
 </button>
 
-<button class="${telaAtual==='vendas'?'ativo':''}" onclick="abrirTela('vendas')">
+<button class="${telaAtual==='vendas'?'active':''}" onclick="abrirTela('vendas')">
 Vendas
 </button>
 
-<button class="${telaAtual==='ferramentas'?'ativo':''}" onclick="abrirTela('ferramentas')">
+<button class="${telaAtual==='ferramentas'?'active':''}" onclick="abrirTela('ferramentas')">
 Ferramentas
 </button>
 

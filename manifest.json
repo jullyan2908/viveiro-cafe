@@ -4,7 +4,7 @@
   "description": "Controle de estoque de mudas, clientes, vendas e reservas do viveiro de café.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F3F0EA",
+  "background_color": "#241509",
   "theme_color": "#241509",
   "orientation": "portrait",
   "lang": "pt-BR",
