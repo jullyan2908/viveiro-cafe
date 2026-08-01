@@ -276,8 +276,10 @@ app.innerHTML=`
 
 <header>
 
+<img src="icons/icon-192.png" alt="" class="logo">
+
 <div>
-<h1>☕ Viveiro & Vendas</h1>
+<h1>Viveiro & Vendas</h1>
 <p>Controle de mudas de café</p>
 </div>
 
@@ -286,23 +288,23 @@ app.innerHTML=`
 
 <nav>
 
-<button onclick="abrirTela('inicio')">
+<button class="${telaAtual==='inicio'?'ativo':''}" onclick="abrirTela('inicio')">
 Painel
 </button>
 
-<button onclick="abrirTela('estoque')">
+<button class="${telaAtual==='estoque'?'ativo':''}" onclick="abrirTela('estoque')">
 Estoque
 </button>
 
-<button onclick="abrirTela('clientes')">
+<button class="${telaAtual==='clientes'?'ativo':''}" onclick="abrirTela('clientes')">
 Clientes
 </button>
 
-<button onclick="abrirTela('vendas')">
+<button class="${telaAtual==='vendas'?'ativo':''}" onclick="abrirTela('vendas')">
 Vendas
 </button>
 
-<button onclick="abrirTela('ferramentas')">
+<button class="${telaAtual==='ferramentas'?'ativo':''}" onclick="abrirTela('ferramentas')">
 Ferramentas
 </button>
 
@@ -331,7 +333,7 @@ function abrirTela(nome){
 
     telaAtual=nome;
 
-    mostrarTela();
+    renderizar();
 
 }
 

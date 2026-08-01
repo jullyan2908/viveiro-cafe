@@ -1,0 +1,434 @@
+/* ======================================
+   Viveiro Café — Controle de Mudas
+   Paleta: terra, folha e cereja de café
+   ====================================== */
+
+:root{
+    --marrom:       #241509;
+    --marrom-suave: #6B5A47;
+    --creme:        #F2E9D5;
+    --creme-escuro:  #E4D6B8;
+    --branco:       #FFFDF9;
+
+    --verde:        #4C7A3E;
+    --verde-claro:  #6FA058;
+    --verde-fundo:  #E7EFDF;
+
+    --terracota:    #B5652F;
+    --terracota-fundo: #F3E1D0;
+
+    --cereja:       #9B3A2E;
+    --cereja-fundo: #F5DEDA;
+
+    --dourado:      #C9973A;
+    --dourado-fundo: #F6EAD2;
+
+    --borda:        #DCCBA6;
+    --sombra:       0 2px 10px rgba(36,21,9,.08);
+    --sombra-forte: 0 6px 24px rgba(36,21,9,.14);
+
+    --fonte-titulo: 'Zilla Slab', Georgia, serif;
+    --fonte-corpo:  'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --fonte-dado:   'IBM Plex Mono', 'SF Mono', monospace;
+}
+
+*{
+    box-sizing: border-box;
+}
+
+html, body{
+    margin: 0;
+    padding: 0;
+    background: var(--creme);
+    color: var(--marrom);
+    font-family: var(--fonte-corpo);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3{
+    font-family: var(--fonte-titulo);
+    color: var(--marrom);
+    margin: 0 0 4px;
+    letter-spacing: -.01em;
+}
+
+h2{
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--creme-escuro);
+}
+
+p{
+    margin: 0;
+    line-height: 1.5;
+}
+
+button{
+    font-family: var(--fonte-corpo);
+    cursor: pointer;
+}
+
+/* ==========================
+   ENTRADA
+========================== */
+
+.fade{
+    animation: entrar .35s ease both;
+}
+
+@keyframes entrar{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+}
+
+.container{
+    max-width: 960px;
+    margin: 0 auto;
+    padding-bottom: 60px;
+}
+
+/* ==========================
+   CABEÇALHO
+========================== */
+
+header{
+    background: var(--marrom);
+    color: var(--creme);
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+header .logo{
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: var(--sombra);
+}
+
+header h1{
+    color: var(--branco);
+    font-size: 1.5rem;
+}
+
+header p{
+    color: var(--creme-escuro);
+    font-size: .9rem;
+}
+
+/* ==========================
+   NAVEGAÇÃO
+========================== */
+
+nav{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 16px 24px;
+    background: var(--creme-escuro);
+    border-bottom: 1px solid var(--borda);
+}
+
+nav button{
+    background: var(--branco);
+    color: var(--marrom-suave);
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: .92rem;
+    font-weight: 600;
+    transition: all .15s;
+}
+
+nav button:hover{
+    border-color: var(--verde);
+    color: var(--verde);
+}
+
+nav button.ativo{
+    background: var(--verde);
+    border-color: var(--verde);
+    color: var(--branco);
+}
+
+/* ==========================
+   CONTEÚDO / CARDS
+========================== */
+
+#conteudo{
+    padding: 24px;
+}
+
+.card{
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--sombra);
+}
+
+.empty{
+    color: var(--marrom-suave);
+    font-style: italic;
+    padding: 18px 0;
+    text-align: center;
+    border: 1px dashed var(--borda);
+    border-radius: 10px;
+}
+
+/* ==========================
+   FORMULÁRIOS
+========================== */
+
+.form-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.form-grid label{
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--marrom-suave);
+    margin-bottom: 6px;
+}
+
+input, select{
+    width: 100%;
+    padding: 11px 12px;
+    border: 1.5px solid var(--borda);
+    border-radius: 10px;
+    background: var(--creme);
+    color: var(--marrom);
+    font-family: var(--fonte-dado);
+    font-size: .95rem;
+}
+
+input:focus, select:focus{
+    outline: none;
+    border-color: var(--verde);
+    background: var(--branco);
+}
+
+/* ==========================
+   BOTÕES DE AÇÃO
+========================== */
+
+button.primary{
+    background: var(--verde);
+    color: var(--branco);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-weight: 700;
+    font-size: .95rem;
+    transition: background .15s;
+}
+
+button.primary:hover{
+    background: var(--verde-claro);
+}
+
+button.delete{
+    background: transparent;
+    color: var(--cereja);
+    border: 1.5px solid var(--cereja);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: .85rem;
+    margin-left: 8px;
+    transition: all .15s;
+}
+
+button.delete:hover{
+    background: var(--cereja);
+    color: var(--branco);
+}
+
+/* ==========================
+   PAINEL / ESTATÍSTICAS
+========================== */
+
+.grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.stat{
+    background: var(--creme);
+    border-left: 5px solid var(--verde);
+    border-radius: 10px;
+    padding: 16px 18px;
+}
+
+.stat small{
+    display: block;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--marrom-suave);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+}
+
+.stat strong{
+    font-family: var(--fonte-dado);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--marrom);
+}
+
+.stat.red{
+    border-left-color: var(--cereja);
+    background: var(--cereja-fundo);
+}
+
+.stat.gold{
+    border-left-color: var(--dourado);
+    background: var(--dourado-fundo);
+}
+
+/* ==========================
+   TABELAS
+========================== */
+
+table{
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th{
+    text-align: left;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--marrom-suave);
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--creme-escuro);
+}
+
+tbody td{
+    padding: 12px;
+    border-bottom: 1px solid var(--creme-escuro);
+    font-family: var(--fonte-dado);
+    font-size: .92rem;
+    vertical-align: middle;
+}
+
+tbody tr:hover{
+    background: var(--creme);
+}
+
+/* Tabela responsiva no celular: vira lista de "rótulo: valor" */
+@media (max-width: 640px){
+
+    thead{
+        display: none;
+    }
+
+    table, tbody, tr, td{
+        display: block;
+        width: 100%;
+    }
+
+    tbody tr{
+        border: 1px solid var(--borda);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        padding: 6px 14px;
+    }
+
+    tbody td{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid var(--creme-escuro);
+        text-align: right;
+    }
+
+    tbody td:last-child{
+        border-bottom: none;
+        justify-content: flex-end;
+    }
+
+    tbody td[data-label]::before{
+        content: attr(data-label);
+        font-family: var(--fonte-corpo);
+        font-weight: 600;
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        color: var(--marrom-suave);
+        text-align: left;
+    }
+}
+
+/* ==========================
+   AVISO (TOAST)
+========================== */
+
+.toast{
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translate(-50%, 12px);
+    background: var(--marrom);
+    color: var(--branco);
+    padding: 13px 22px;
+    border-radius: 999px;
+    font-size: .9rem;
+    font-weight: 600;
+    box-shadow: var(--sombra-forte);
+    opacity: 0;
+    transition: all .25s ease;
+    z-index: 999;
+    max-width: 90vw;
+    text-align: center;
+}
+
+.toast.show{
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* ==========================
+   RESPONSIVO GERAL
+========================== */
+
+@media (max-width: 640px){
+
+    header{
+        padding: 18px 16px;
+    }
+
+    header h1{
+        font-size: 1.25rem;
+    }
+
+    nav{
+        padding: 12px 16px;
+        gap: 6px;
+    }
+
+    nav button{
+        padding: 8px 14px;
+        font-size: .85rem;
+    }
+
+    #conteudo{
+        padding: 16px;
+    }
+
+    .card{
+        padding: 18px;
+    }
+}
