@@ -53,6 +53,89 @@ header h1{
     font-size:30px;
 }
 
+header button.sair{
+    margin-left:auto;
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text2);
+    padding:9px 16px;
+    border-radius:5px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+header button.sair:hover{
+    border-color:var(--red);
+    color:#ff9b9b;
+}
+
+/* ==========================
+   LOGIN
+========================== */
+
+.tela-login{
+    min-height:85vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.login-card{
+    width:100%;
+    max-width:380px;
+    text-align:center;
+}
+
+.login-card .logo{
+    width:64px;
+    height:64px;
+    border-radius:14px;
+    margin-bottom:14px;
+}
+
+.login-card h1{
+    font-family:Georgia,serif;
+    font-size:26px;
+}
+
+.login-card p{
+    color:var(--text2);
+    margin-bottom:24px;
+}
+
+.login-card .form-grid{
+    grid-template-columns:1fr;
+    text-align:left;
+}
+
+.login-card button.primary{
+    width:100%;
+}
+
+.campo-senha{
+    display:flex;
+    gap:8px;
+}
+
+.campo-senha input{
+    flex:1;
+}
+
+.olho{
+    background:none;
+    border:1px solid var(--border);
+    border-radius:5px;
+    padding:0 14px;
+    cursor:pointer;
+    font-size:16px;
+    flex-shrink:0;
+}
+
+.olho:hover{
+    border-color:var(--green);
+}
+
 header p{
     color:var(--text2);
     margin-top:4px;

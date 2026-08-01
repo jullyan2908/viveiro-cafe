@@ -49,6 +49,157 @@ const docRef = db.collection("viveiro").doc("dados");
 
 
 // -------------------------------
+// LOGIN (Firebase Authentication)
+// -------------------------------
+
+let usuarioLogado = null;
+let escutaDadosAtiva = false;
+
+firebase.auth().onAuthStateChanged(usuario=>{
+
+    usuarioLogado = usuario;
+
+    if(usuario){
+
+        if(telaAtual === "login") telaAtual = "inicio";
+
+        iniciarEscutaDados();
+
+    }
+
+    atualizarTela();
+
+});
+
+
+function fazerLogin(){
+
+    let email =
+    document
+    .getElementById("loginEmail")
+    .value
+    .trim();
+
+    let senha =
+    document
+    .getElementById("loginSenha")
+    .value;
+
+    if(!email || !senha){
+
+        mostrarToast("Preencha e-mail e senha");
+
+        return;
+
+    }
+
+    let botao = document.getElementById("loginBotao");
+    if(botao){
+        botao.disabled = true;
+        botao.innerText = "Entrando...";
+    }
+
+    firebase.auth()
+    .signInWithEmailAndPassword(email, senha)
+    .catch(erro=>{
+
+        console.log("Erro no login:", erro.code);
+
+        if(erro.code === "auth/invalid-credential" || erro.code === "auth/wrong-password" || erro.code === "auth/user-not-found"){
+            mostrarToast("E-mail ou senha incorretos");
+        }else if(erro.code === "auth/too-many-requests"){
+            mostrarToast("Muitas tentativas — espera um pouco e tenta de novo");
+        }else{
+            mostrarToast("Não foi possível entrar");
+        }
+
+        if(botao){
+            botao.disabled = false;
+            botao.innerText = "Entrar";
+        }
+
+    });
+
+}
+
+
+function alternarSenha(){
+
+    let campo = document.getElementById("loginSenha");
+    let botao = document.getElementById("olhoSenha");
+
+    if(campo.type === "password"){
+        campo.type = "text";
+        botao.innerText = "🙈";
+    }else{
+        campo.type = "password";
+        botao.innerText = "👁️";
+    }
+
+}
+
+
+function fazerLogout(){
+
+    firebase.auth().signOut();
+
+}
+
+
+// -------------------------------
+// BANCO NA NUVEM (Firestore)
+// -------------------------------
+
+function iniciarEscutaDados(){
+
+    if(escutaDadosAtiva) return;
+    escutaDadosAtiva = true;
+
+    // Escuta mudanças em tempo real na nuvem
+    // (isso também faz a primeira carga dos dados)
+    docRef.onSnapshot(
+    doc=>{
+
+        if(doc.exists){
+
+            const remoto = doc.data();
+
+            if(
+                remoto &&
+                Array.isArray(remoto.clientes) &&
+                Array.isArray(remoto.estoque) &&
+                Array.isArray(remoto.vendas)
+            ){
+
+                dados = remoto;
+
+            }
+
+        }else{
+
+            // primeira vez usando o app: cria o documento na nuvem
+            docRef.set(dados);
+
+        }
+
+        atualizarTela();
+
+    },
+    erro=>{
+
+        console.log("Erro ao sincronizar com a nuvem:", erro);
+
+        carregarDadosLocal();
+
+        atualizarTela();
+
+    }
+    );
+
+}
+
+
+// -------------------------------
 // BANCO NA NUVEM (Firestore)
 // -------------------------------
 
@@ -270,6 +421,23 @@ function renderizar(){
 const app=document.getElementById("app-root");
 
 
+if(!usuarioLogado){
+
+    app.innerHTML=`
+
+<div class="container fade">
+
+${telaLogin()}
+
+</div>
+
+    `;
+
+    return;
+
+}
+
+
 app.innerHTML=`
 
 <div class="container fade">
@@ -282,6 +450,8 @@ app.innerHTML=`
 <h1>Viveiro & Vendas</h1>
 <p>Controle de mudas de café</p>
 </div>
+
+<button class="sair" onclick="fazerLogout()" title="Sair">Sair</button>
 
 </header>
 
@@ -320,6 +490,55 @@ Ferramentas
 
 
 mostrarTela();
+
+}
+
+
+// -------------------------------
+// TELA DE LOGIN
+// -------------------------------
+
+function telaLogin(){
+
+return `
+
+<div class="tela-login">
+
+<div class="card login-card">
+
+<img src="icons/icon-192.png" alt="" class="logo">
+
+<h1>Viveiro & Vendas</h1>
+<p>Controle de mudas de café</p>
+
+<div class="form-grid">
+
+<div>
+<label>E-mail</label>
+<input type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter') fazerLogin()">
+</div>
+
+<div>
+<label>Senha</label>
+<div class="campo-senha">
+<input type="password" id="loginSenha" placeholder="Sua senha" onkeydown="if(event.key==='Enter') fazerLogin()">
+<button type="button" id="olhoSenha" class="olho" onclick="alternarSenha()">👁️</button>
+</div>
+</div>
+
+</div>
+
+<br>
+
+<button class="primary" id="loginBotao" onclick="fazerLogin()">
+Entrar
+</button>
+
+</div>
+
+</div>
+
+`;
 
 }
 
@@ -1177,14 +1396,24 @@ dados.estoque.map(e=>`
 </div>
 
 <div>
-<label>Valor de entrada (se ele já deu uma parte)</label>
+<label>Situação do pagamento</label>
+<select id="vendaStatus">
+<option value="pago">Pago (à vista)</option>
+<option value="parcial">Pago parcial (sinal)</option>
+<option value="reservado">Reservado (preço combinado, sem pagamento)</option>
+<option value="sem_preco">Reservado (preço a combinar depois)</option>
+</select>
+</div>
+
+<div>
+<label>Valor de entrada — só preencha se a situação for "Parcial"</label>
 <input type="number" step="0.01" id="vendaValorEntrada" placeholder="Ex: 20.00">
 </div>
 
 </div>
 
 <p style="font-size:.9rem;opacity:.75;margin-top:6px;">
-💡 A muda sai do estoque assim que reserva, mesmo sem preço definido. Se não pagou nada ainda, deixe "valor de entrada" em branco. Se pagou tudo, coloque o valor de entrada igual ao valor da muda × quantidade.
+💡 A muda sai do estoque assim que reserva. Escolhendo "preço a combinar depois", o campo de valor da muda é ignorado — dá pra definir mais tarde na entrega/retirada.
 </p>
 
 <br>
@@ -1331,6 +1560,11 @@ document
 .getElementById("vendaPreco")
 .value;
 
+let status =
+document
+.getElementById("vendaStatus")
+.value;
+
 let valorEntradaInformado =
 document
 .getElementById("vendaValorEntrada")
@@ -1367,33 +1601,33 @@ return;
 }
 
 
+if(status!=="sem_preco" && !precoInformado){
+
+mostrarToast(
+"Preencha o valor da muda (ou escolha 'preço a combinar depois')"
+);
+
+return;
+}
+
+
 produto.quantidade -= quantidade;
 
-// Se o preço por muda não foi digitado, fica "a definir" — dá pra completar
-// depois na entrega/retirada (função definirPreco). O valor de entrada
-// (se ele já deu uma parte) fica guardado mesmo sem o preço total fechado.
+// "Sem preço" ignora o campo de valor por completo — fica "a definir" e é
+// preenchido depois, na entrega/retirada (função definirPreco).
 let precoUnitario = Number(String(precoInformado).replace(",", "."));
-let temPreco = precoInformado !== "" && precoUnitario > 0;
+let valor = status==="sem_preco" ? null : precoUnitario * quantidade;
 
-let valor = temPreco ? precoUnitario * quantidade : null;
+// Quanto já foi pago, de acordo com a situação escolhida:
+// pago -> valor cheio | reservado/sem_preco -> nada | parcial -> o que foi digitado na entrada
+let valorPago = 0;
 
-let valorEntrada = Number(String(valorEntradaInformado).replace(",", ".")) || 0;
-if(valorEntrada < 0) valorEntrada = 0;
-if(temPreco && valorEntrada > valor) valorEntrada = valor;
-
-let valorPago = valorEntrada;
-
-// Situação calculada sozinha a partir dos valores digitados —
-// não precisa mais escolher numa lista.
-let status;
-if(!temPreco){
-    status = "sem_preco";
-}else if(valorPago >= valor){
-    status = "pago";
-}else if(valorPago > 0){
-    status = "parcial";
-}else{
-    status = "reservado";
+if(status==="pago"){
+    valorPago = valor;
+}else if(status==="parcial"){
+    valorPago = Number(String(valorEntradaInformado).replace(",", ".")) || 0;
+    if(valorPago > valor) valorPago = valor;
+    if(valorPago < 0) valorPago = 0;
 }
 
 dados.vendas.push({
