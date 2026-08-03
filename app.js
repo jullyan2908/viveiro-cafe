@@ -20,13 +20,12 @@ let telaAtual = "inicio";
 // -------------------------------
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCGUtsMPJ4equGi9RnTGLR52pQPfXwCnyA",
-    authDomain: "viveiro-cafe.firebaseapp.com",
-    databaseURL: "https://viveiro-cafe-default-rtdb.firebaseio.com",
-    projectId: "viveiro-cafe",
-    storageBucket: "viveiro-cafe.firebasestorage.app",
-    messagingSenderId: "175298893236",
-    appId: "1:175298893236:web:16654a0a1804346d324ee1"
+    apiKey: "AIzaSyDxWnb382E4J1EPZ-Es9O4ytwceKgWEGMw",
+    authDomain: "viveiro-cafe-pedro.firebaseapp.com",
+    projectId: "viveiro-cafe-pedro",
+    storageBucket: "viveiro-cafe-pedro.firebasestorage.app",
+    messagingSenderId: "1008798649663",
+    appId: "1:1008798649663:web:98e9ce0914fd4eb378178a"
 };
 
 firebase.initializeApp(firebaseConfig);
