@@ -13,6 +13,8 @@ let dados = {
 };
 
 let telaAtual = "inicio";
+let modoLogin = "entrar"; // "entrar" ou "criar"
+let buscaVendaCliente = "";
 
 
 // -------------------------------
@@ -138,8 +140,101 @@ function alternarSenha(){
 }
 
 
+function alternarSenhaConfirma(){
+
+    let campo = document.getElementById("loginSenhaConfirma");
+    let botao = document.getElementById("olhoSenhaConfirma");
+
+    if(campo.type === "password"){
+        campo.type = "text";
+        botao.innerText = "🙈";
+    }else{
+        campo.type = "password";
+        botao.innerText = "👁️";
+    }
+
+}
+
+
+function criarConta(){
+
+    let email =
+    document
+    .getElementById("loginEmail")
+    .value
+    .trim();
+
+    let senha =
+    document
+    .getElementById("loginSenha")
+    .value;
+
+    let senhaConfirma =
+    document
+    .getElementById("loginSenhaConfirma")
+    .value;
+
+    if(!email || !senha){
+
+        mostrarToast("Preencha e-mail e senha");
+
+        return;
+
+    }
+
+    if(senha.length < 6){
+
+        mostrarToast("A senha precisa ter pelo menos 6 caracteres");
+
+        return;
+
+    }
+
+    if(senha !== senhaConfirma){
+
+        mostrarToast("As senhas digitadas são diferentes");
+
+        return;
+
+    }
+
+    let botao = document.getElementById("loginBotao");
+    if(botao){
+        botao.disabled = true;
+        botao.innerText = "Criando...";
+    }
+
+    firebase.auth()
+    .createUserWithEmailAndPassword(email, senha)
+    .catch(erro=>{
+
+        console.log("Erro ao criar conta:", erro.code);
+
+        if(erro.code === "auth/email-already-in-use"){
+            mostrarToast("Esse e-mail já tem conta — tenta entrar");
+        }else if(erro.code === "auth/invalid-email"){
+            mostrarToast("E-mail inválido");
+        }else if(erro.code === "auth/weak-password"){
+            mostrarToast("Senha muito fraca — use pelo menos 6 caracteres");
+        }else{
+            mostrarToast("Não foi possível criar a conta");
+        }
+
+        if(botao){
+            botao.disabled = false;
+            botao.innerText = "Criar conta";
+        }
+
+    });
+
+    // se der certo, o onAuthStateChanged detecta sozinho e já entra logado
+
+}
+
+
 function fazerLogout(){
 
+    modoLogin = "entrar";
     firebase.auth().signOut();
 
 }
@@ -537,6 +632,62 @@ mostrarTela();
 
 function telaLogin(){
 
+if(modoLogin==="criar"){
+
+return `
+
+<div class="tela-login">
+
+<div class="card login-card">
+
+<img src="icons/icon-192.png" alt="" class="logo">
+
+<h1>Criar conta</h1>
+<p>Viveiro & Vendas</p>
+
+<div class="form-grid">
+
+<div>
+<label>E-mail</label>
+<input type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter') criarConta()">
+</div>
+
+<div>
+<label>Senha (mínimo 6 caracteres)</label>
+<div class="campo-senha">
+<input type="password" id="loginSenha" placeholder="Escolha uma senha" onkeydown="if(event.key==='Enter') criarConta()">
+<button type="button" id="olhoSenha" class="olho" onclick="alternarSenha()">👁️</button>
+</div>
+</div>
+
+<div>
+<label>Confirmar senha</label>
+<div class="campo-senha">
+<input type="password" id="loginSenhaConfirma" placeholder="Digite a senha de novo" onkeydown="if(event.key==='Enter') criarConta()">
+<button type="button" id="olhoSenhaConfirma" class="olho" onclick="alternarSenhaConfirma()">👁️</button>
+</div>
+</div>
+
+</div>
+
+<br>
+
+<button class="primary" id="loginBotao" onclick="criarConta()">
+Criar conta
+</button>
+
+<p class="helper" style="margin-top:16px;">
+Já tem conta? <a href="javascript:void(0)" onclick="modoLogin='entrar'; renderizar();">Entrar</a>
+</p>
+
+</div>
+
+</div>
+
+`;
+
+}
+
 return `
 
 <div class="tela-login">
@@ -570,6 +721,10 @@ return `
 <button class="primary" id="loginBotao" onclick="fazerLogin()">
 Entrar
 </button>
+
+<p class="helper" style="margin-top:16px;">
+Não tem conta? <a href="javascript:void(0)" onclick="modoLogin='criar'; renderizar();">Criar conta</a>
+</p>
 
 </div>
 
@@ -1457,12 +1612,36 @@ Registrar
 
 <h2>Histórico de vendas e reservas</h2>
 
+<div class="form-grid" style="margin-bottom:16px;">
+<div>
+<label>Buscar por cliente</label>
+<input type="text" id="buscaVendaCliente" placeholder="Digite o nome do cliente..." value="${buscaVendaCliente}" oninput="filtrarVendasPorCliente(this.value)">
+</div>
+</div>
+
 ${
-dados.vendas.length===0
-?
-`<div class="empty">Nenhuma venda ou reserva registrada.</div>`
-:
-`
+(()=>{
+
+let vendasFiltradas = dados.vendas;
+
+if(buscaVendaCliente.trim()!==""){
+
+    let termo = buscaVendaCliente.trim().toLowerCase();
+
+    vendasFiltradas = dados.vendas.filter(v=>{
+        let cliente = dados.clientes.find(c=>c.id===v.clienteId);
+        return cliente && cliente.nome.toLowerCase().includes(termo);
+    });
+
+}
+
+if(vendasFiltradas.length===0){
+    return dados.vendas.length===0
+    ? `<div class="empty">Nenhuma venda ou reserva registrada.</div>`
+    : `<div class="empty">Nenhuma venda encontrada pra esse cliente.</div>`;
+}
+
+return `
 <table>
 <thead>
 <tr>
@@ -1477,7 +1656,7 @@ dados.vendas.length===0
 
 <tbody>
 ${
-dados.vendas.map(v=>{
+vendasFiltradas.map(v=>{
 
 let cliente =
 dados.clientes.find(
@@ -1547,7 +1726,9 @@ status!=="pago"
 }
 </tbody>
 </table>
-`
+`;
+
+})()
 }
 
 </div>
@@ -1562,6 +1743,32 @@ status!=="pago"
 // --------------------------------------
 // REGISTRAR VENDA
 // --------------------------------------
+
+
+// --------------------------------------
+// BUSCAR VENDA POR CLIENTE
+// --------------------------------------
+
+function filtrarVendasPorCliente(valor){
+
+    buscaVendaCliente = valor;
+
+    let campo = document.getElementById("buscaVendaCliente");
+    let posicaoCursor = campo ? campo.selectionStart : null;
+
+    mostrarTela();
+
+    // sem isso, o campo perderia o foco a cada letra digitada
+    // (a tela inteira é redesenhada de novo a cada busca)
+    let campoNovo = document.getElementById("buscaVendaCliente");
+    if(campoNovo){
+        campoNovo.focus();
+        if(posicaoCursor !== null){
+            campoNovo.setSelectionRange(posicaoCursor, posicaoCursor);
+        }
+    }
+
+}
 
 
 function registrarVenda(){
