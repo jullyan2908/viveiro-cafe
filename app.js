@@ -1697,7 +1697,13 @@ ${numero(v.quantidade)}
 </td>
 
 <td data-label="Valor">
-${temPreco ? dinheiro(v.valor) : "A definir"}
+${
+temPreco
+?
+`${dinheiro(v.valor)}<br><small>${dinheiro(v.valor/v.quantidade)}/muda</small>`
+:
+"A definir"
+}
 </td>
 
 <td data-label="Situação">
