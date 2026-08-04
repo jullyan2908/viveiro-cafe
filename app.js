@@ -1795,11 +1795,6 @@ document
 .getElementById("vendaPreco")
 .value;
 
-let status =
-document
-.getElementById("vendaStatus")
-.value;
-
 let valorEntradaInformado =
 document
 .getElementById("vendaValorEntrada")
@@ -1836,33 +1831,33 @@ return;
 }
 
 
-if(status!=="sem_preco" && !precoInformado){
-
-mostrarToast(
-"Preencha o valor da muda (ou escolha 'preço a combinar depois')"
-);
-
-return;
-}
-
-
 produto.quantidade -= quantidade;
 
-// "Sem preço" ignora o campo de valor por completo — fica "a definir" e é
-// preenchido depois, na entrega/retirada (função definirPreco).
+// Se o preço por muda não foi digitado, fica "a definir" — dá pra completar
+// depois na entrega/retirada (função definirPreco). O valor de entrada
+// (se ele já deu uma parte) fica guardado mesmo sem o preço total fechado.
 let precoUnitario = Number(String(precoInformado).replace(",", "."));
-let valor = status==="sem_preco" ? null : precoUnitario * quantidade;
+let temPreco = precoInformado !== "" && precoUnitario > 0;
 
-// Quanto já foi pago, de acordo com a situação escolhida:
-// pago -> valor cheio | reservado/sem_preco -> nada | parcial -> o que foi digitado na entrada
-let valorPago = 0;
+let valor = temPreco ? precoUnitario * quantidade : null;
 
-if(status==="pago"){
-    valorPago = valor;
-}else if(status==="parcial"){
-    valorPago = Number(String(valorEntradaInformado).replace(",", ".")) || 0;
-    if(valorPago > valor) valorPago = valor;
-    if(valorPago < 0) valorPago = 0;
+let valorEntrada = Number(String(valorEntradaInformado).replace(",", ".")) || 0;
+if(valorEntrada < 0) valorEntrada = 0;
+if(temPreco && valorEntrada > valor) valorEntrada = valor;
+
+let valorPago = valorEntrada;
+
+// Situação calculada sozinha a partir dos valores digitados —
+// não precisa escolher numa lista separada.
+let status;
+if(!temPreco){
+    status = "sem_preco";
+}else if(valorPago >= valor){
+    status = "pago";
+}else if(valorPago > 0){
+    status = "parcial";
+}else{
+    status = "reservado";
 }
 
 dados.vendas.push({
