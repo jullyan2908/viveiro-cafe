@@ -209,7 +209,7 @@ function salvarDados(){
 
         console.log("Erro ao salvar na nuvem:", err);
 
-        mostrarToast("Sem conexão, salvo só neste aparelho");
+        mostrarToast("Sem conexão agora — vai sincronizar sozinho depois");
 
     });
 
@@ -406,6 +406,39 @@ document.addEventListener(
 ()=>{
 
     atualizarTela();
+    atualizarFaixaConexao();
+
+});
+
+
+// -------------------------------
+// AVISO DE CONEXÃO (offline/online)
+// -------------------------------
+
+function atualizarFaixaConexao(){
+
+    let faixa = document.getElementById("faixaConexao");
+    if(!faixa) return;
+
+    if(navigator.onLine){
+        faixa.style.display = "none";
+    }else{
+        faixa.style.display = "block";
+    }
+
+}
+
+window.addEventListener("offline", ()=>{
+
+    mostrarToast("Sem internet — continua registrando, sincroniza sozinho depois");
+    atualizarFaixaConexao();
+
+});
+
+window.addEventListener("online", ()=>{
+
+    mostrarToast("Conexão de volta — sincronizando com o Firebase...");
+    atualizarFaixaConexao();
 
 });
 
@@ -453,6 +486,11 @@ app.innerHTML=`
 <button class="sair" onclick="fazerLogout()" title="Sair">Sair</button>
 
 </header>
+
+
+<div id="faixaConexao" class="faixa-offline" style="display:${navigator.onLine ? 'none' : 'block'}">
+🔌 Sem internet — os lançamentos ficam guardados aqui e sobem sozinhos pro Firebase quando a conexão voltar.
+</div>
 
 
 <nav>
@@ -1127,6 +1165,7 @@ Nenhuma variedade cadastrada.
 
 <th>Quantidade</th>
 
+
 <th></th>
 
 </tr>
@@ -1185,8 +1224,8 @@ Number(e.quantidade)<100
 </td>
 
 
-
 <td>
+
 
 
 <button
@@ -1395,24 +1434,14 @@ dados.estoque.map(e=>`
 </div>
 
 <div>
-<label>Situação do pagamento</label>
-<select id="vendaStatus">
-<option value="pago">Pago (à vista)</option>
-<option value="parcial">Pago parcial (sinal)</option>
-<option value="reservado">Reservado (preço combinado, sem pagamento)</option>
-<option value="sem_preco">Reservado (preço a combinar depois)</option>
-</select>
-</div>
-
-<div>
-<label>Valor de entrada — só preencha se a situação for "Parcial"</label>
+<label>Valor de entrada (se ele já deu uma parte)</label>
 <input type="number" step="0.01" id="vendaValorEntrada" placeholder="Ex: 20.00">
 </div>
 
 </div>
 
 <p style="font-size:.9rem;opacity:.75;margin-top:6px;">
-💡 A muda sai do estoque assim que reserva. Escolhendo "preço a combinar depois", o campo de valor da muda é ignorado — dá pra definir mais tarde na entrega/retirada.
+💡 A muda sai do estoque assim que reserva, mesmo sem preço definido. Se não pagou nada ainda, deixe "valor de entrada" em branco. Se pagou tudo, coloque o valor de entrada igual ao valor da muda × quantidade.
 </p>
 
 <br>
