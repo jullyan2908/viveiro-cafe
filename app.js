@@ -70,7 +70,7 @@ try{
     console.log("Erro ao ativar persistência offline:", e);
 }
 
-const docRef = db.collection("viveiro").doc("dados");
+let docRef = null; // definido depois do login, um por usuário (isolado por UID)
 
 
 // -------------------------------
@@ -78,17 +78,39 @@ const docRef = db.collection("viveiro").doc("dados");
 // -------------------------------
 
 let usuarioLogado = null;
-let escutaDadosAtiva = false;
+let pararEscuta = null; // cancela o listener do usuário anterior, se tiver
 
 firebase.auth().onAuthStateChanged(usuario=>{
 
     usuarioLogado = usuario;
 
+    // se já tinha um listener rodando (de outro usuário, ou de antes de sair),
+    // para ele antes de continuar — senão os dados de contas diferentes se misturam
+    if(pararEscuta){
+        pararEscuta();
+        pararEscuta = null;
+    }
+
     if(usuario){
+
+        // cada usuário tem seu próprio documento, isolado pelo UID dele
+        docRef = db
+            .collection("usuarios")
+            .doc(usuario.uid)
+            .collection("viveiro")
+            .doc("dados");
 
         if(telaAtual === "login") telaAtual = "inicio";
 
+        // limpa o que tava na tela antes de carregar os dados desse usuário
+        dados = { clientes: [], estoque: [], vendas: [] };
+
         iniciarEscutaDados();
+
+    }else{
+
+        docRef = null;
+        dados = { clientes: [], estoque: [], vendas: [] };
 
     }
 
@@ -270,12 +292,11 @@ function fazerLogout(){
 
 function iniciarEscutaDados(){
 
-    if(escutaDadosAtiva) return;
-    escutaDadosAtiva = true;
+    if(!docRef) return;
 
     // Escuta mudanças em tempo real na nuvem
     // (isso também faz a primeira carga dos dados)
-    docRef.onSnapshot(
+    pararEscuta = docRef.onSnapshot(
     doc=>{
 
         if(doc.exists){
@@ -295,7 +316,7 @@ function iniciarEscutaDados(){
 
         }else{
 
-            // primeira vez usando o app: cria o documento na nuvem
+            // primeira vez desse usuário no app: cria o documento dele na nuvem
             docRef.set(dados);
 
         }
@@ -323,6 +344,8 @@ function iniciarEscutaDados(){
 
 function salvarDados(){
 
+    if(!docRef || !usuarioLogado) return;
+
     docRef.set(dados)
     .catch(err=>{
 
@@ -332,11 +355,11 @@ function salvarDados(){
 
     });
 
-    // cópia extra local, só por segurança
+    // cópia extra local, só por segurança — separada por usuário
     try{
 
         localStorage.setItem(
-            STORAGE_KEY,
+            STORAGE_KEY + "_" + usuarioLogado.uid,
             JSON.stringify(dados)
         );
 
@@ -351,7 +374,9 @@ function salvarDados(){
 
 function carregarDadosLocal(){
 
-    const salvo = localStorage.getItem(STORAGE_KEY);
+    if(!usuarioLogado) return;
+
+    const salvo = localStorage.getItem(STORAGE_KEY + "_" + usuarioLogado.uid);
 
     if(salvo){
 
