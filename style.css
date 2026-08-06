@@ -11,6 +11,15 @@
     --border:rgba(255,255,255,.08);
 }
 
+a{
+    color:var(--gold);
+    text-decoration:none;
+}
+
+a:hover{
+    text-decoration:underline;
+}
+
 *{
     margin:0;
     padding:0;

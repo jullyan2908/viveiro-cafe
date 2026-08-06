@@ -16,6 +16,30 @@ let telaAtual = "inicio";
 let modoLogin = "entrar"; // "entrar" ou "criar"
 let buscaVendaCliente = "";
 
+// Cloudinary — usado só pra guardar o PDF do contrato de cada cliente (opcional)
+const CLOUDINARY_CLOUD_NAME = "tbic6pyg";
+const CLOUDINARY_UPLOAD_PRESET = "viveiro-cafe";
+const LIMITE_CONTRATO_BYTES = 8 * 1024 * 1024; // 8MB
+
+
+function enviarParaCloudinary(arquivo){
+
+    let formData = new FormData();
+    formData.append("file", arquivo);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    return fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+        method: "POST",
+        body: formData
+    })
+    .then(resposta=>{
+        if(!resposta.ok) throw new Error("Falha no upload");
+        return resposta.json();
+    })
+    .then(json=>json.secure_url);
+
+}
+
 
 // -------------------------------
 // FIREBASE (nuvem) - configuração
@@ -1065,6 +1089,7 @@ Nenhum cliente cadastrado.
 <th>Nome</th>
 <th>Telefone</th>
 <th>Cidade</th>
+<th>Contrato</th>
 <th></th>
 
 </tr>
@@ -1093,6 +1118,20 @@ ${c.telefone || "-"}
 
 <td data-label="Cidade">
 ${c.cidade || "-"}
+</td>
+
+
+<td data-label="Contrato">
+
+${
+c.contratoUrl
+?
+`<a href="${c.contratoUrl}" target="_blank" rel="noopener">📄 Ver contrato</a><br><button class="delete" style="margin-top:6px;margin-left:0;" onclick="removerContrato('${c.id}')">Remover</button>`
+:
+`<input type="file" accept="application/pdf" id="arquivoContrato-${c.id}" style="display:none" onchange="anexarContrato('${c.id}', this.files[0])">
+<button class="primary" onclick="document.getElementById('arquivoContrato-${c.id}').click()">📎 Anexar PDF</button>`
+}
+
 </td>
 
 
@@ -1212,6 +1251,72 @@ mostrarToast(
 
 
 mostrarTela();
+
+}
+
+
+// --------------------------------------
+// CONTRATO EM PDF (Cloudinary, opcional)
+// --------------------------------------
+
+function anexarContrato(clienteId, arquivo){
+
+    if(!arquivo) return;
+
+    if(arquivo.type !== "application/pdf"){
+        mostrarToast("Só é possível anexar arquivos PDF");
+        return;
+    }
+
+    if(arquivo.size > LIMITE_CONTRATO_BYTES){
+        mostrarToast(`PDF muito grande (máx. ${Math.round(LIMITE_CONTRATO_BYTES/1024/1024)}MB)`);
+        return;
+    }
+
+    let cliente = dados.clientes.find(c=>c.id===clienteId);
+    if(!cliente) return;
+
+    mostrarToast("Enviando contrato...");
+
+    enviarParaCloudinary(arquivo)
+    .then(url=>{
+
+        cliente.contratoUrl = url;
+        cliente.contratoNome = arquivo.name;
+
+        salvarDados();
+
+        mostrarToast("Contrato anexado");
+
+        mostrarTela();
+
+    })
+    .catch(erro=>{
+
+        console.log("Erro ao enviar contrato:", erro);
+        mostrarToast("Erro ao enviar o PDF — tenta de novo");
+
+    });
+
+}
+
+
+function removerContrato(clienteId){
+
+    if(!confirm("Remover o contrato desse cliente?"))
+        return;
+
+    let cliente = dados.clientes.find(c=>c.id===clienteId);
+    if(!cliente) return;
+
+    delete cliente.contratoUrl;
+    delete cliente.contratoNome;
+
+    salvarDados();
+
+    mostrarToast("Contrato removido");
+
+    mostrarTela();
 
 }
 // ======================================
@@ -1622,13 +1727,13 @@ Registrar
 ${
 (()=>{
 
-let vendasFiltradas = dados.vendas;
+let vendasFiltradas = dados.vendas.slice().reverse();
 
 if(buscaVendaCliente.trim()!==""){
 
     let termo = buscaVendaCliente.trim().toLowerCase();
 
-    vendasFiltradas = dados.vendas.filter(v=>{
+    vendasFiltradas = vendasFiltradas.filter(v=>{
         let cliente = dados.clientes.find(c=>c.id===v.clienteId);
         return cliente && cliente.nome.toLowerCase().includes(termo);
     });
