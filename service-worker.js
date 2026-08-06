@@ -4,7 +4,7 @@
 // Funcionamento offline
 // ======================================
 
-const CACHE_NAME = "viveiro-cafe-v6";
+const CACHE_NAME = "viveiro-cafe-v7";
 
 const ARQUIVOS = [
     "./",
