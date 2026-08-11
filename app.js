@@ -886,8 +886,14 @@ function telaInicio(){
     );
 
 
-    let aReceber = dados.vendas.reduce(
-        (s,item)=> item.valor==null ? s : s+(Number(item.valor)-Number(item.valorPago||0)),
+    let aReceberReservado = dados.vendas.reduce(
+        (s,item)=> item.status==="reservado" ? s+Number(item.valor||0) : s,
+        0
+    );
+
+
+    let aReceberSinal = dados.vendas.reduce(
+        (s,item)=> item.status==="parcial" ? s+(Number(item.valor)-Number(item.valorPago||0)) : s,
         0
     );
 
@@ -932,8 +938,14 @@ return `
 
 
 <div class="stat red">
-<small>A receber (reservas/sinal)</small>
-<strong>${dinheiro(aReceber)}</strong>
+<small>A receber (reservado, sem pagamento)</small>
+<strong>${dinheiro(aReceberReservado)}</strong>
+</div>
+
+
+<div class="stat red">
+<small>A receber (sinal/parcial)</small>
+<strong>${dinheiro(aReceberSinal)}</strong>
 </div>
 
 
