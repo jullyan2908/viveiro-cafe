@@ -1811,7 +1811,9 @@ let status = v.status || "pago";
 let situacaoHtml = "";
 
 if(status==="sem_preco"){
-    situacaoHtml = `🔵 Reservado<br><small>preço a definir</small>`;
+    situacaoHtml = valorPago>0
+        ? `🔵 Sinal ${dinheiro(valorPago)}<br><small>preço da muda a definir</small>`
+        : `🔵 Reservado<br><small>preço a definir</small>`;
 }else if(status==="pago"){
     situacaoHtml = `✅ Pago`;
 }else if(status==="parcial"){
@@ -2191,8 +2193,16 @@ if(!precoUnitario || precoUnitario<=0){
 }
 
 venda.valor = precoUnitario * venda.quantidade;
-venda.status = "reservado";
-venda.valorPago = 0;
+
+// mantém o sinal que já tinha sido dado antes do preço ser combinado
+let valorPagoAtual = Number(venda.valorPago || 0);
+if(valorPagoAtual > venda.valor) valorPagoAtual = venda.valor;
+venda.valorPago = valorPagoAtual;
+
+venda.status =
+venda.valorPago >= venda.valor ? "pago" :
+venda.valorPago > 0 ? "parcial" :
+"reservado";
 
 salvarDados();
 
