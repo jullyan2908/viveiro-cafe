@@ -326,7 +326,11 @@ function iniciarEscutaDados(){
     },
     erro=>{
 
-        console.log("Erro ao sincronizar com a nuvem:", erro);
+        console.log("Erro ao sincronizar com a nuvem:", erro.code, erro.message);
+
+        if(erro.code === "permission-denied"){
+            mostrarToast("Acesso negado pelo Firebase — confere a regra do Firestore");
+        }
 
         carregarDadosLocal();
 
@@ -349,9 +353,15 @@ function salvarDados(){
     docRef.set(dados)
     .catch(err=>{
 
-        console.log("Erro ao salvar na nuvem:", err);
+        console.log("Erro ao salvar na nuvem:", err.code, err.message);
 
-        mostrarToast("Sem conexão agora — vai sincronizar sozinho depois");
+        if(err.code === "permission-denied"){
+            mostrarToast("Acesso negado pelo Firebase — confere a regra do Firestore");
+        }else if(!navigator.onLine){
+            mostrarToast("Sem conexão agora — vai sincronizar sozinho depois");
+        }else{
+            mostrarToast("Erro ao salvar: " + err.code);
+        }
 
     });
 
