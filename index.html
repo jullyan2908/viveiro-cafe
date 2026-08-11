@@ -34,7 +34,36 @@
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
+
+        navigator.serviceWorker.register('service-worker.js').then(registration => {
+
+            // toda vez que o app abre, força checar se tem versão nova no GitHub
+            registration.update();
+
+            // se já tiver uma versão nova parada esperando, manda ela assumir na hora
+            if (registration.waiting) {
+                registration.waiting.postMessage('skipWaiting');
+            }
+
+            registration.addEventListener('updatefound', () => {
+                const novoWorker = registration.installing;
+                novoWorker.addEventListener('statechange', () => {
+                    if (novoWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        novoWorker.postMessage('skipWaiting');
+                    }
+                });
+            });
+
+        });
+
+        // quando a versão nova assume o controle, recarrega a página sozinho
+        let jaRecarregou = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (jaRecarregou) return;
+            jaRecarregou = true;
+            window.location.reload();
+        });
+
     });
 }
 </script>

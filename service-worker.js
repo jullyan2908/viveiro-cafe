@@ -4,7 +4,7 @@
 // Funcionamento offline
 // ======================================
 
-const CACHE_NAME = "viveiro-cafe-v7";
+const CACHE_NAME = "viveiro-cafe-v8";
 
 const ARQUIVOS = [
     "./",
@@ -21,6 +21,14 @@ self.addEventListener("install", evento => {
         caches.open(CACHE_NAME)
         .then(cache => cache.addAll(ARQUIVOS))
     );
+});
+
+// Permite que a página (index.html) mande esse worker assumir na hora,
+// em vez de esperar o ciclo normal do navegador
+self.addEventListener("message", evento => {
+    if (evento.data === "skipWaiting") {
+        self.skipWaiting();
+    }
 });
 
 // Abrir arquivos: tenta a internet primeiro (pega sempre a versão mais nova).
