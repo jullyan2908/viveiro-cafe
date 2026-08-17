@@ -903,6 +903,12 @@ function telaInicio(){
     ).length;
 
 
+    let sinalSemPreco = dados.vendas.reduce(
+        (s,item)=> item.status==="sem_preco" ? s+Number(item.valorPago||0) : s,
+        0
+    );
+
+
 return `
 
 <div class="card">
@@ -926,13 +932,13 @@ return `
 
 
 <div class="stat gold">
-<small>Faturamento</small>
+<small>Faturamento (vendas com preço definido)</small>
 <strong>${dinheiro(faturamento)}</strong>
 </div>
 
 
 <div class="stat">
-<small>Já recebido</small>
+<small>Já recebido (inclui sinal de reservas sem preço)</small>
 <strong>${dinheiro(jaRecebido)}</strong>
 </div>
 
@@ -953,8 +959,8 @@ ${
 semPrecoDefinido>0
 ?
 `<div class="stat gold">
-<small>Reservas com preço a definir</small>
-<strong>${numero(semPrecoDefinido)}</strong>
+<small>Reservas com preço a definir (${numero(semPrecoDefinido)})</small>
+<strong>${dinheiro(sinalSemPreco)} em sinal</strong>
 </div>`
 :
 ""
