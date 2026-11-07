@@ -1,0 +1,40 @@
+// Gerado por tools/nova-versao.mjs — não edite à mão.
+// Rode "npm run versao" depois de mudar qualquer arquivo do app.
+self.VERSAO_APP = "2.0.0";
+self.VERSAO_ARQUIVOS = "b87631faeb";
+self.ARQUIVOS_APP = [
+    "./",
+    "css/estilo.css",
+    "icons/apple-touch-icon-180.png",
+    "icons/icon-192.png",
+    "icons/icon-512.png",
+    "icons/icon-64.png",
+    "icons/icon-maskable-512.png",
+    "index.html",
+    "js/acoes-backup.js",
+    "js/arquivos.js",
+    "js/auth.js",
+    "js/backup.js",
+    "js/config.js",
+    "js/db.js",
+    "js/estado.js",
+    "js/excel.js",
+    "js/migracao.js",
+    "js/principal.js",
+    "js/regras.js",
+    "js/telas/clientes.js",
+    "js/telas/estoque.js",
+    "js/telas/form-cliente.js",
+    "js/telas/form-venda.js",
+    "js/telas/mais.js",
+    "js/telas/painel.js",
+    "js/telas/vendas.js",
+    "js/ui.js",
+    "js/util.js",
+    "js/versao.js",
+    "manifest.json",
+    "vendor/firebase-app-compat.js",
+    "vendor/firebase-auth-compat.js",
+    "vendor/firebase-firestore-compat.js",
+    "vendor/xlsx.bundle.js"
+];

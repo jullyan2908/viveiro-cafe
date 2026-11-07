@@ -1,70 +1,75 @@
 // ======================================
-// Viveiro Café
-// Service Worker
-// Funcionamento offline
+// Viveiro Café — service worker (funcionar sem internet)
+//
+// • Na instalação guarda uma cópia de TODOS os arquivos do app (lista em js/versao.js).
+// • Ao abrir um arquivo tenta a internet primeiro (pega sempre a versão mais nova),
+//   mas se ela demorar mais de 3 segundos usa a cópia guardada.
+// • Só cuida de arquivos do próprio app (GET no mesmo endereço). Firebase, Cloudinary
+//   e qualquer outro site passam direto, sem passar por aqui.
+// • Quando uma versão nova assume, avisa as páginas abertas; elas mostram
+//   "Nova versão disponível" e a pessoa escolhe quando atualizar.
 // ======================================
 
-const CACHE_NAME = "viveiro-cafe-v8";
+importScripts("js/versao.js");
 
-const ARQUIVOS = [
-    "./",
-    "./index.html",
-    "./style.css",
-    "./app.js",
-    "./manifest.json"
-];
+const VERSAO = `${self.VERSAO_APP}-${self.VERSAO_ARQUIVOS}`;
+const PREFIXO = "viveiro-cafe-";
+const NOME_CACHE = `${PREFIXO}${VERSAO}`;
+const PRAZO_REDE_MS = 3000;
 
-// Instalação
 self.addEventListener("install", evento => {
-    self.skipWaiting(); // não espera todas as abas fecharem — assume o controle assim que possível
-    evento.waitUntil(
-        caches.open(CACHE_NAME)
-        .then(cache => cache.addAll(ARQUIVOS))
-    );
+    evento.waitUntil((async () => {
+        const cache = await caches.open(NOME_CACHE);
+        // cache: "reload" garante arquivos novos (não os da cópia do navegador)
+        await Promise.all(self.ARQUIVOS_APP.map(url => cache.add(new Request(url, { cache: "reload" }))));
+        await self.skipWaiting();
+    })());
 });
 
-// Permite que a página (index.html) mande esse worker assumir na hora,
-// em vez de esperar o ciclo normal do navegador
-self.addEventListener("message", evento => {
-    if (evento.data === "skipWaiting") {
-        self.skipWaiting();
-    }
-});
-
-// Abrir arquivos: tenta a internet primeiro (pega sempre a versão mais nova).
-// Só usa a cópia guardada se estiver sem sinal.
-self.addEventListener("fetch", evento => {
-    const url = evento.request.url;
-    if (url.includes("googleapis.com") ||
-        url.includes("firebaseio.com") ||
-        url.includes("firebasestorage") ||
-        url.includes("gstatic.com") ||
-        url.includes("jsdelivr.net") ||
-        url.includes("google.com")) {
-        return;
-    }
-
-    evento.respondWith(
-        fetch(evento.request)
-            .then(resposta => {
-                const copia = resposta.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(evento.request, copia));
-                return resposta;
-            })
-            .catch(() => caches.match(evento.request))
-    );
-});
-
-// Atualização do aplicativo
 self.addEventListener("activate", evento => {
-    evento.waitUntil(
-        caches.keys()
-        .then(chaves => Promise.all(
-            chaves.map(chave => {
-                if (chave !== CACHE_NAME) {
-                    return caches.delete(chave);
-                }
-            })
-        )).then(() => self.clients.claim())
-    );
+    evento.waitUntil((async () => {
+        const chaves = await caches.keys();
+        await Promise.all(chaves.filter(c => c.startsWith(PREFIXO) && c !== NOME_CACHE).map(c => caches.delete(c)));
+        await self.clients.claim();
+        const paginas = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
+        paginas.forEach(p => p.postMessage({ tipo: "versao-ativa", versao: VERSAO }));
+    })());
 });
+
+// páginas antigas do app pedem assim para o worker novo assumir
+self.addEventListener("message", evento => {
+    if (evento.data === "skipWaiting") self.skipWaiting();
+});
+
+self.addEventListener("fetch", evento => {
+    const pedido = evento.request;
+    if (pedido.method !== "GET") return;
+    const url = new URL(pedido.url);
+    if (url.origin !== self.location.origin) return;
+    evento.respondWith(responder(evento, pedido));
+});
+
+async function responder(evento, pedido) {
+    const cache = await caches.open(NOME_CACHE);
+
+    // a internet continua tentando mesmo depois do prazo, para atualizar a cópia guardada
+    const rede = fetch(pedido.url, { cache: "no-cache", credentials: "same-origin" }).then(async resposta => {
+        if (resposta.ok) await cache.put(pedido, resposta.clone());
+        return resposta;
+    });
+    rede.catch(() => { /* sem internet: tratado abaixo */ });
+    evento.waitUntil(rede.then(() => {}, () => {}));
+
+    const prazo = new Promise(resolver => setTimeout(() => resolver(null), PRAZO_REDE_MS));
+    try {
+        const resposta = await Promise.race([rede, prazo]);
+        if (resposta) return resposta;
+    } catch (erro) {
+        // sem internet: usa a cópia
+    }
+
+    const guardado = await cache.match(pedido, { ignoreSearch: pedido.mode === "navigate" })
+        || (pedido.mode === "navigate" ? await cache.match("index.html") : undefined);
+    if (guardado) return guardado;
+    return rede; // nada guardado: espera a internet até o fim
+}

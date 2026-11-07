@@ -1,72 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width,initial-scale=1,maximum-scale=1">
-
-    <title>Viveiro & Vendas</title>
-
-    <!-- PWA -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Viveiro Café</title>
+    <meta name="description" content="Estoque, clientes e vendas das mudas de café do viveiro.">
     <meta name="theme-color" content="#241509">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Viveiro Café">
+    <meta name="color-scheme" content="dark">
 
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" href="icons/icon-64.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Viveiro Café">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/estilo.css">
 </head>
-
 <body>
+    <!-- tela de abertura: aparece antes do JavaScript carregar e some quando o app sabe quem está entrando -->
+    <div id="app">
+        <main class="tela-central">
+            <img class="login-logo" src="icons/icon-192.png" width="72" height="72" alt="">
+            <p class="carregando-texto" role="status">Abrindo o app…</p>
+            <div class="pontos" aria-hidden="true"><span></span><span></span><span></span></div>
+        </main>
+    </div>
 
-<div id="app-root"></div>
+    <div id="camada"></div>
+    <div id="avisos" role="status" aria-live="polite"></div>
 
-<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-<script src="app.js"></script>
+    <noscript>
+        <p style="padding:24px;color:#F1E6D2">O Viveiro Café precisa de JavaScript para funcionar. Ative o JavaScript no navegador e recarregue a página.</p>
+    </noscript>
 
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-
-        navigator.serviceWorker.register('service-worker.js').then(registration => {
-
-            // toda vez que o app abre, força checar se tem versão nova no GitHub
-            registration.update();
-
-            // se já tiver uma versão nova parada esperando, manda ela assumir na hora
-            if (registration.waiting) {
-                registration.waiting.postMessage('skipWaiting');
-            }
-
-            registration.addEventListener('updatefound', () => {
-                const novoWorker = registration.installing;
-                novoWorker.addEventListener('statechange', () => {
-                    if (novoWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        novoWorker.postMessage('skipWaiting');
-                    }
-                });
-            });
-
-        });
-
-        // quando a versão nova assume o controle, recarrega a página sozinho
-        let jaRecarregou = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (jaRecarregou) return;
-            jaRecarregou = true;
-            window.location.reload();
-        });
-
-    });
-}
-</script>
-
+    <script src="js/versao.js"></script>
+    <script src="vendor/firebase-app-compat.js"></script>
+    <script src="vendor/firebase-auth-compat.js"></script>
+    <script src="vendor/firebase-firestore-compat.js"></script>
+    <script src="vendor/xlsx.bundle.js"></script>
+    <script type="module" src="js/principal.js"></script>
 </body>
 </html>

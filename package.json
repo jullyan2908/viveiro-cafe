@@ -1,0 +1,11 @@
+{
+  "name": "viveiro-cafe",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Viveiro Café — controle de mudas, clientes e vendas (PWA com Firebase)",
+  "scripts": {
+    "test": "node --test",
+    "versao": "node tools/nova-versao.mjs"
+  }
+}

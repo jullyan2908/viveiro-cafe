@@ -1,0 +1,23 @@
+{
+  "clientes": [
+    {"id": "c1", "nome": "Sebastião Almeida", "telefone": "(34) 99876-5432", "cidade": "Patrocínio"},
+    {"id": "c2", "nome": "Maria Aparecida Souza", "telefone": "(16) 99123-4455", "cidade": "Franca", "contratoUrl": "https://res.cloudinary.com/demo/contrato.pdf", "contratoNome": "contrato.pdf"},
+    {"id": "c3", "nome": "Fazenda Santa Luzia", "telefone": "(35) 3551-2200", "cidade": "Guaxupé"},
+    {"id": "c4", "nome": "João Pedro Lima", "telefone": "", "cidade": ""},
+    {"id": "c5", "nome": "Cooperativa Cafés do Cerrado", "telefone": "(34) 3831-0099", "cidade": "Monte Carmelo"}
+  ],
+  "estoque": [
+    {"id": "e1", "nome": "Catuaí Vermelho IAC 144", "quantidade": 5200},
+    {"id": "e2", "nome": "Mundo Novo", "quantidade": 3400},
+    {"id": "e3", "nome": "Arara", "quantidade": 80},
+    {"id": "e4", "nome": "Bourbon Amarelo", "quantidade": 1250},
+    {"id": "e5", "nome": "Topázio", "quantidade": 0}
+  ],
+  "vendas": [
+    {"id": "v1", "clienteId": "c1", "produtoId": "e1", "produto": "Catuaí Vermelho IAC 144", "quantidade": 2000, "valor": 3000, "valorPago": 3000, "status": "pago", "data": "2026-10-02"},
+    {"id": "v2", "clienteId": "c3", "produtoId": "e2", "produto": "Mundo Novo", "quantidade": 1500, "valor": 2250, "valorPago": 800, "status": "parcial", "data": "2026-10-14"},
+    {"id": "v3", "clienteId": "c2", "produtoId": "e4", "produto": "Bourbon Amarelo", "quantidade": 500, "valor": 900, "valorPago": 0, "status": "reservado", "data": "2026-10-28"},
+    {"id": "v4", "clienteId": "c5", "produtoId": "e1", "produto": "Catuaí Vermelho IAC 144", "quantidade": 3000, "valor": null, "valorPago": 500, "status": "sem_preco", "data": "2026-11-03"},
+    {"id": "v5", "clienteId": "c4", "produtoId": "e3", "produto": "Arara", "quantidade": 120, "valor": 240, "valorPago": 240, "status": "pago", "data": "2026-11-05"}
+  ]
+}

@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// Regras do Firestore do Viveiro Café.
+// Publique em: Console do Firebase → Firestore Database → Regras (veja o passo 2 do LEIA-ME.md).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cada conta só lê e grava o que está dentro da própria pasta: usuarios/<id da conta>/...
+    // Isso cobre o documento antigo (viveiro/dados) e as coleções novas
+    // (clientes, estoque, vendas, ajustes e meta).
+    match /usuarios/{uid}/{documento=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Qualquer outro caminho continua fechado: sem regra, o Firestore nega.
+
+    // ------------------------------------------------------------------
+    // OPCIONAL — aceitar só o seu e-mail, mesmo que alguém consiga criar outra conta.
+    // Troque a regra de cima por esta (e o e-mail pelo seu):
+    //
+    // match /usuarios/{uid}/{documento=**} {
+    //   allow read, write: if request.auth != null
+    //                      && request.auth.uid == uid
+    //                      && request.auth.token.email == "seu-email@exemplo.com";
+    // }
+    // ------------------------------------------------------------------
+  }
+}
